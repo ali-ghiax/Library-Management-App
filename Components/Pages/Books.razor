@@ -1,0 +1,83 @@
+@page "/books"
+@rendermode InteractiveServer
+@using MyBlazorApp.Data
+@using MyBlazorApp.Models
+@inject AppDbContext _context
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Books</PageTitle>
+
+<h3>Books</h3>
+
+<p>
+    <a href="/book-create" class="btn btn-primary">Add New Book</a>
+</p>
+
+@if (books == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (books.Count == 0)
+{
+    <p>No books found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Author</th>
+                <th>ISBN</th>
+                <th>Edition</th>
+                <th>Category</th>
+                <th>Total Copies</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int rowNumber = 1;
+            }
+            @foreach (var book in books)
+            {
+                <tr>
+                    <td>@rowNumber</td>
+                    <td>@book.Name</td>
+                    <td>@book.Author</td>
+                    <td>@book.ISBN</td>
+                    <td>@book.Edition</td>
+                    <td>@book.Category</td>
+                    <td>@book.TotalCopies</td>
+                    <td>
+                        <a href="/book-edit/@book.Id" class="btn btn-warning btn-sm">Edit</a>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteBook(book.Id)">Delete</button>
+                    </td>
+                </tr>
+                rowNumber++;
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Book>? books;
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await _context.Books.ToListAsync();
+    }
+
+    private async Task DeleteBook(int id)
+    {
+        var book = await _context.Books.FindAsync(id);
+        if (book != null)
+        {
+            _context.Books.Remove(book);
+            await _context.SaveChangesAsync();
+            books = await _context.Books.ToListAsync();
+        }
+    }
+}

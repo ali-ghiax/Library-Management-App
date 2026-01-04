@@ -1,0 +1,66 @@
+@page "/book-create"
+@rendermode InteractiveServer
+@using MyBlazorApp.Data
+@using MyBlazorApp.Models
+@inject NavigationManager NavigationManager
+@inject AppDbContext _context
+
+<PageTitle>Create Book</PageTitle>
+
+<h3>Create Book</h3>
+
+<EditForm Model="@book" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Name:</label>
+        <InputText @bind-Value="book.Name" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Author:</label>
+        <InputText @bind-Value="book.Author" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">ISBN:</label>
+        <InputText @bind-Value="book.ISBN" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Edition:</label>
+        <InputText @bind-Value="book.Edition" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Category:</label>
+        <InputText @bind-Value="book.Category" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Total Copies:</label>
+        <InputNumber @bind-Value="book.TotalCopies" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/books" class="btn btn-secondary">Cancel</a>
+</EditForm>
+
+@code {
+    private Book book { get; set; } = new()
+    {
+        Name = string.Empty,
+        Author = string.Empty,
+        ISBN = string.Empty,
+        Edition = string.Empty,
+        Category = string.Empty
+    };
+
+    private async Task HandleValidSubmit()
+    {
+        _context.Books.Add(book);
+        await _context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/books");
+    }
+}

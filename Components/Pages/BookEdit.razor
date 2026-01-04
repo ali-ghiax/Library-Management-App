@@ -1,0 +1,77 @@
+@page "/book-edit/{id:int}"
+@rendermode InteractiveServer
+@using MyBlazorApp.Data
+@using MyBlazorApp.Models
+@inject NavigationManager NavigationManager
+@inject AppDbContext _context
+
+<PageTitle>Edit Book</PageTitle>
+
+<h3>Edit Book</h3>
+
+@if (book == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="@book" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Name:</label>
+            <InputText @bind-Value="book.Name" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Author:</label>
+            <InputText @bind-Value="book.Author" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">ISBN:</label>
+            <InputText @bind-Value="book.ISBN" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Edition:</label>
+            <InputText @bind-Value="book.Edition" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Category:</label>
+            <InputText @bind-Value="book.Category" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Total Copies:</label>
+            <InputNumber @bind-Value="book.TotalCopies" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-success">Update</button>
+        <a href="/books" class="btn btn-secondary">Cancel</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter] 
+    public int id { get; set; }
+
+    private Book? book { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        book = await _context.Books.FindAsync(id);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (book != null)
+        {
+            _context.Books.Update(book);
+            await _context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/books");
+        }
+    }
+}

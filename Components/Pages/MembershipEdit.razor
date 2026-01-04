@@ -1,0 +1,67 @@
+@page "/membership-edit/{id:int}"
+@rendermode InteractiveServer
+@using MyBlazorApp.Data
+@using MyBlazorApp.Models
+@inject NavigationManager NavigationManager
+@inject AppDbContext _context
+
+<PageTitle>Edit Membership</PageTitle>
+
+<h3>Edit Membership</h3>
+
+@if (membership == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="@membership" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Name:</label>
+            <InputText @bind-Value="membership.Name" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Member Type:</label>
+            <InputText @bind-Value="membership.MemberType" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Phone Number:</label>
+            <InputText @bind-Value="membership.PhoneNumber" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Date Joined:</label>
+            <InputDate @bind-Value="membership.DateJoined" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-success">Update</button>
+        <a href="/memberships" class="btn btn-secondary">Cancel</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter] 
+    public int id { get; set; }
+
+    private Membership? membership { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        membership = await _context.Memberships.FindAsync(id);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (membership != null)
+        {
+            _context.Memberships.Update(membership);
+            await _context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/memberships");
+        }
+    }
+}

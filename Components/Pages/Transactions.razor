@@ -1,0 +1,87 @@
+@page "/transactions"
+@rendermode InteractiveServer
+@using MyBlazorApp.Data
+@using MyBlazorApp.Models
+@inject AppDbContext _context
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Transactions</PageTitle>
+
+<h3>Transactions</h3>
+
+<p>
+    <a href="/transaction-create" class="btn btn-primary">Add New Transaction</a>
+</p>
+
+@if (transactions == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (transactions.Count == 0)
+{
+    <p>No transactions found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Book</th>
+                <th>Membership</th>
+                <th>Issue Date</th>
+                <th>Return Date</th>
+                <th>Fine Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int rowNumber = 1;
+            }
+            @foreach (var transaction in transactions)
+            {
+                <tr>
+                    <td>@rowNumber</td>
+                    <td>@transaction.Book?.Name</td>
+                    <td>@transaction.Membership?.Name</td>
+                    <td>@transaction.IssueDate.ToShortDateString()</td>
+                    <td>@(transaction.ReturnDate?.ToShortDateString() ?? "Not Returned")</td>
+                    <td>@transaction.FineAmount.ToString("C")</td>
+                    <td>
+                        <a href="/transaction-edit/@transaction.Id" class="btn btn-warning btn-sm">Edit</a>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteTransaction(transaction.Id)">Delete</button>
+                    </td>
+                </tr>
+                rowNumber++;
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Transaction>? transactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        transactions = await _context.Transactions
+            .Include(t => t.Book)
+            .Include(t => t.Membership)
+            .ToListAsync();
+    }
+
+    private async Task DeleteTransaction(int id)
+    {
+        var transaction = await _context.Transactions.FindAsync(id);
+        if (transaction != null)
+        {
+            _context.Transactions.Remove(transaction);
+            await _context.SaveChangesAsync();
+            transactions = await _context.Transactions
+                .Include(t => t.Book)
+                .Include(t => t.Membership)
+                .ToListAsync();
+        }
+    }
+}

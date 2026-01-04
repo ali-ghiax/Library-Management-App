@@ -1,0 +1,90 @@
+@page "/transaction-edit/{id:int}"
+@rendermode InteractiveServer
+@using MyBlazorApp.Data
+@using MyBlazorApp.Models
+@inject NavigationManager NavigationManager
+@inject AppDbContext _context
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Edit Transaction</PageTitle>
+
+<h3>Edit Transaction</h3>
+
+@if (transaction == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="@transaction" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Book:</label>
+            <InputSelect @bind-Value="transaction.BookId" class="form-control">
+                <option value="">Select a book</option>
+                @foreach (var book in books)
+                {
+                    <option value="@book.Id">@book.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Membership:</label>
+            <InputSelect @bind-Value="transaction.MembershipId" class="form-control">
+                <option value="">Select a membership</option>
+                @foreach (var membership in memberships)
+                {
+                    <option value="@membership.Id">@membership.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Issue Date:</label>
+            <InputDate @bind-Value="transaction.IssueDate" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Return Date:</label>
+            <InputDate @bind-Value="transaction.ReturnDate" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Fine Amount:</label>
+            <InputNumber @bind-Value="transaction.FineAmount" class="form-control" step="0.01" />
+        </div>
+
+        <button type="submit" class="btn btn-success">Update</button>
+        <a href="/transactions" class="btn btn-secondary">Cancel</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter] 
+    public int id { get; set; }
+
+    private Transaction? transaction { get; set; }
+
+    private List<Book> books = new();
+    private List<Membership> memberships = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await _context.Books.ToListAsync();
+        memberships = await _context.Memberships.ToListAsync();
+        transaction = await _context.Transactions.FindAsync(id);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (transaction != null)
+        {
+            _context.Transactions.Update(transaction);
+            await _context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/transactions");
+        }
+    }
+}

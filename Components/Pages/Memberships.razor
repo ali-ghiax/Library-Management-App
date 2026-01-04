@@ -1,0 +1,79 @@
+@page "/memberships"
+@rendermode InteractiveServer
+@using MyBlazorApp.Data
+@using MyBlazorApp.Models
+@inject AppDbContext _context
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Memberships</PageTitle>
+
+<h3>Memberships</h3>
+
+<p>
+    <a href="/membership-create" class="btn btn-primary">Add New Membership</a>
+</p>
+
+@if (memberships == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (memberships.Count == 0)
+{
+    <p>No memberships found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Member Type</th>
+                <th>Phone Number</th>
+                <th>Date Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int rowNumber = 1;
+            }
+            @foreach (var membership in memberships)
+            {
+                <tr>
+                    <td>@rowNumber</td>
+                    <td>@membership.Name</td>
+                    <td>@membership.MemberType</td>
+                    <td>@membership.PhoneNumber</td>
+                    <td>@membership.DateJoined.ToShortDateString()</td>
+                    <td>
+                        <a href="/membership-edit/@membership.Id" class="btn btn-warning btn-sm">Edit</a>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteMembership(membership.Id)">Delete</button>
+                    </td>
+                </tr>
+                rowNumber++;
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Membership>? memberships;
+
+    protected override async Task OnInitializedAsync()
+    {
+        memberships = await _context.Memberships.ToListAsync();
+    }
+
+    private async Task DeleteMembership(int id)
+    {
+        var membership = await _context.Memberships.FindAsync(id);
+        if (membership != null)
+        {
+            _context.Memberships.Remove(membership);
+            await _context.SaveChangesAsync();
+            memberships = await _context.Memberships.ToListAsync();
+        }
+    }
+}

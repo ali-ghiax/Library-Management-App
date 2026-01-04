@@ -1,0 +1,80 @@
+@page "/transaction-create"
+@rendermode InteractiveServer
+@using MyBlazorApp.Data
+@using MyBlazorApp.Models
+@inject NavigationManager NavigationManager
+@inject AppDbContext _context
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Create Transaction</PageTitle>
+
+<h3>Create Transaction</h3>
+
+<EditForm Model="@transaction" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Book:</label>
+        <InputSelect @bind-Value="transaction.BookId" class="form-control">
+            <option value="">Select a book</option>
+            @foreach (var book in books)
+            {
+                <option value="@book.Id">@book.Name</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Membership:</label>
+        <InputSelect @bind-Value="transaction.MembershipId" class="form-control">
+            <option value="">Select a membership</option>
+            @foreach (var membership in memberships)
+            {
+                <option value="@membership.Id">@membership.Name</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Issue Date:</label>
+        <InputDate @bind-Value="transaction.IssueDate" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Return Date:</label>
+        <InputDate @bind-Value="transaction.ReturnDate" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Fine Amount:</label>
+        <InputNumber @bind-Value="transaction.FineAmount" class="form-control" step="0.01" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/transactions" class="btn btn-secondary">Cancel</a>
+</EditForm>
+
+@code {
+    private Transaction transaction { get; set; } = new()
+    {
+        IssueDate = DateTime.Now,
+        FineAmount = 0
+    };
+
+    private List<Book> books = new();
+    private List<Membership> memberships = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await _context.Books.ToListAsync();
+        memberships = await _context.Memberships.ToListAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _context.Transactions.Add(transaction);
+        await _context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/transactions");
+    }
+}
